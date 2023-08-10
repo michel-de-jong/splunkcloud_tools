@@ -7,19 +7,23 @@ import argparse
 __name__ = "rest_bulk_update_savedsearches.py"
 __author__ = "Michel de Jong"
 
+api_calls_count = 0
+
 def make_api_call(api_url, app_name, encoded_stanza, headers, data):
     response = requests.post(api_url, headers=headers, data=data)
+    global api_calls_count
+    api_calls_count += 1
     if response.status_code == 200:
-        print(f"API call successful for {encoded_stanza} in {app_name}")
+        print(f"#{api_calls_count} | API call successful")
         log_message(api_url, f"API call successful for {encoded_stanza} in {app_name}", level="info")
     else:
-        print(f"API call failed for {encoded_stanza} in {app_name}. Status Code: {response.status_code}")
+        print(f"#{api_calls_count} | API call failed, see error.log for details")
         log_message(api_url, f"API call failed for {encoded_stanza} in {app_name}. Status Code: {response.status_code}", level="error")
         log_message(api_url, f"Response Content: {response.text}", level="error")
 
 def log_message(api_url, message, level):
     log_directory = create_log_directory(api_url)
-    log_file = os.path.join(log_directory, f"{level}_log.txt")
+    log_file = os.path.join(log_directory, f"{level}.log")
 
     with open(log_file, "a") as f:
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
