@@ -10,8 +10,10 @@ __author__ = "Michel de Jong"
 def make_api_call(api_url, app_name, encoded_stanza, headers, data):
     response = requests.post(api_url, headers=headers, data=data)
     if response.status_code == 200:
+        print(f"API call successful for {encoded_stanza} in {app_name}")
         log_message(api_url, f"API call successful for {encoded_stanza} in {app_name}", level="info")
     else:
+        print(f"API call failed for {encoded_stanza} in {app_name}. Status Code: {response.status_code}")
         log_message(api_url, f"API call failed for {encoded_stanza} in {app_name}. Status Code: {response.status_code}", level="error")
         log_message(api_url, f"Response Content: {response.text}", level="error")
 
@@ -43,7 +45,7 @@ def main(args):
 
     # Record the start time
     start_time = datetime.datetime.now()
-    
+
     # Iterate over default directories of each app with savedsearches.conf
     for app_name in os.listdir(os.path.join(location)):
         savedsearches_path = os.path.join(location, app_name, "default", "savedsearches.conf")
@@ -115,6 +117,7 @@ def main(args):
 
     # Display the runtime notification
     print(f"Script completed in {runtime} seconds.")
+    print(f"Logfiles are created in the working directory of the script")
 
 if __name__ == "rest_bulk_update_savedsearches.py":
     parser = argparse.ArgumentParser(description="Script to update saved searches in Splunk apps")
