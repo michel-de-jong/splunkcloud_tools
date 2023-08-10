@@ -61,7 +61,7 @@ def main(args):
                         if "disabled=0" in line or "disabled = 0" in line or "disabled=false" in line or "disabled = false" in line or "disabled" not in line:
                             encoded_stanza = urllib.parse.quote(stanza)
                             # Make API call to enable the saved search
-                            api_call = f"{api_url}/services/saved/searches/{encoded_stanza}"
+                            api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
                             headers = {"Authorization": f"Bearer {token}"}
                             data = {"disabled": "0"}
                             if args.debug:
@@ -73,13 +73,13 @@ def main(args):
                             make_api_call(api_call, app_name, encoded_stanza, headers, data)
 
                         elif "disabled=1" in line or "disabled = 1" in line or "disabled=true" in line or "disabled = true" in line:
-                            api_call = f"{api_url}/services/saved/searches/{encoded_stanza}"
+                            api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
                             headers = {"Authorization": f"Bearer {token}"}
                             data = {"disabled": "1"}
                             if args.debug:
                                 log_message(api_url, "Processing saved search:", level="debug")
                                 log_message(api_url, f"API URL: {api_call}", level="debug")
-                                # Comment out header because of security reason
+                                # Comment out header because of security reasons
                                 # log_message(api_url, f"Headers: {headers}", level="debug")
                                 log_message(api_url, f"Data: {data}", level="debug")
                             make_api_call(api_call, app_name, encoded_stanza, headers, data)
@@ -96,25 +96,25 @@ def main(args):
                         encoded_stanza = urllib.parse.quote(stanza)
                         
                         if "disabled" in line or "disabled = 0" in line or "disabled=false" in line or "disabled = false" in line:
-                            api_call = f"{api_url}/services/saved/searches/{encoded_stanza}"
+                            api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
                             headers = {"Authorization": f"Bearer {token}"}
                             data = {"disabled": "0"}
                             if args.debug:
                                 log_message(api_url, "Processing saved search:", level="debug")
                                 log_message(api_url, f"API URL: {api_call}", level="debug")
-                                # Comment out header because of security reason
+                                # Comment out header because of security reasons
                                 # log_message(api_url, f"Headers: {headers}", level="debug")
                                 log_message(api_url, f"Data: {data}", level="debug")
                             make_api_call(api_call, app_name, encoded_stanza, headers, data)
                         
                         elif "disabled=1" in line or "disabled = 1" in line or "disabled=true" in line or "disabled = true" in line:
-                            api_call = f"{api_url}/services/saved/searches/{encoded_stanza}"
+                            api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
                             headers = {"Authorization": f"Bearer {token}"}
                             data = {"disabled": "1"}
                             if args.debug:
                                 log_message(api_url, "Processing saved search:", level="debug")
                                 log_message(api_url, f"API URL: {api_call}", level="debug")
-                                # Comment out header because of security reason
+                                # Comment out header because of security reasons
                                 # log_message(api_url, f"Headers: {headers}", level="debug")
                                 log_message(api_url, f"Data: {data}", level="debug")
                             make_api_call(api_call, app_name, encoded_stanza, headers, data)
