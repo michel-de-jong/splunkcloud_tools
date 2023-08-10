@@ -26,8 +26,8 @@ def log_message(api_url, message, level):
         f.write(f"[{now}] [{level.upper()}] {message}\n")
 
 def create_log_directory(api_url):
-    stackname = urllib.parse.urlparse(api_url).hostname.split('.')[0]+urllib.parse.urlparse(api_url).hostname.split('.')[1]
-    date = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    stackname = urllib.parse.urlparse(api_url).hostname.split('.')[0]+"_"+urllib.parse.urlparse(api_url).hostname.split('.')[1]
+    date = datetime.datetime.now().strftime("%Y%m%d")
     directory_name = f"run_{stackname}_{date}"
     
     if not os.path.exists(directory_name):
