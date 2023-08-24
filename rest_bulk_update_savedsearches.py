@@ -1,3 +1,7 @@
+### DISCLAIMER
+#
+### USE SCRIPT AT YOUR OWN RISK
+
 import os
 import urllib.parse
 import requests
