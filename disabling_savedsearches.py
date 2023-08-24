@@ -1,3 +1,11 @@
+### DISCLAIMER
+#
+### THE SCRIPT IS NOT PERFECT
+#
+### USE SCRIPT AT YOUR OWN RISK
+#
+### ALWAYS VERIFY RESULTS
+
 import os
 import shutil
 import sys
