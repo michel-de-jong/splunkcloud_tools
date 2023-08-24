@@ -1,6 +1,8 @@
 ### DISCLAIMER
 #
 ### USE SCRIPT AT YOUR OWN RISK
+#
+### ALWAYS VERIFY RESULTS
 
 import os
 import urllib.parse
