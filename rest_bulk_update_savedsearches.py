@@ -45,6 +45,36 @@ def create_log_directory(api_url):
     
     return directory_name
 
+def disable_stanza(api_url, token, args, app_name, stanza_name):
+    encoded_stanza = urllib.parse.quote(stanza_name)
+    api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
+    headers = {"Authorization": f"Bearer {token}"}
+    data = {"disabled": "1"}
+    if args.debug:
+        log_message(api_url, f"--------------------------------------", level="debug")
+        log_message(api_url, f"Processing saved search: {stanza_name}", level="debug")
+        log_message(api_url, f"API URL: {api_call}", level="debug")
+        # Remove comment below to enable header in debug logs
+        # log_message(api_url, f"Headers: {headers}", level="debug")
+        log_message(api_url, f"Data: {data}", level="debug")
+        log_message(api_url, f"--------------------------------------", level="debug")
+    make_api_call(api_call, app_name, encoded_stanza, headers, data)
+
+def enable_stanza(api_url, token, args, app_name, stanza_name):
+    encoded_stanza = urllib.parse.quote(stanza_name)
+    api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
+    headers = {"Authorization": f"Bearer {token}"}
+    data = {"disabled": "0"}
+    if args.debug:
+        log_message(api_url, f"--------------------------------------", level="debug")
+        log_message(api_url, f"Processing saved search: {stanza_name}", level="debug")
+        log_message(api_url, f"API URL: {api_call}", level="debug")
+        # Remove comment below to enable header in debug logs
+        # log_message(api_url, f"Headers: {headers}", level="debug")
+        log_message(api_url, f"Data: {data}", level="debug")
+        log_message(api_url, f"--------------------------------------", level="debug")
+    make_api_call(api_call, app_name, encoded_stanza, headers, data)
+
 def main(args):
     # Get the location of the Splunk app location from user input
     location = input("Enter the location of the Splunk apps: ")
@@ -61,84 +91,71 @@ def main(args):
         savedsearches_path = os.path.join(location, app_name, "default", "savedsearches.conf")
         if os.path.exists(savedsearches_path):
             with open(savedsearches_path, "r") as f:
+                inside_stanza = False  # Flag to track if inside a stanza
+                stanza = None
+                has_disabled = False # Flag to track if stanza has a disabled parameter
+
                 for line in f:
+                    if args.debug:
+                        log_message(api_url, f"{app_name}/DEFAULT: {line}", level="debug")
                     if line.startswith("[") and line.endswith("]\n"):
-                        stanza = line.strip()[1:-1]
-                        disabled_present = False
-                        if "disabled=0" in line or "disabled = 0" in line or "disabled=false" in line or "disabled = false" in line:
-                            disabled_present = True
-                            encoded_stanza = urllib.parse.quote(stanza)
-                            # Make API call to enable the saved search
-                            api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
-                            headers = {"Authorization": f"Bearer {token}"}
-                            data = {"disabled": "0"}
-                            if args.debug:
-                                log_message(api_url, "Processing saved search:", level="debug")
-                                log_message(api_url, f"API URL: {api_call}", level="debug")
-                                # Comment out header because of security reasons
-                                # log_message(api_url, f"Headers: {headers}", level="debug")
-                                log_message(api_url, f"Data: {data}", level="debug")
-                            make_api_call(api_call, app_name, encoded_stanza, headers, data)
-
-                        elif "disabled=1" in line or "disabled = 1" in line or "disabled=true" in line or "disabled = true" in line:
-                            disabled_present = True
-                            api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
-                            headers = {"Authorization": f"Bearer {token}"}
-                            data = {"disabled": "1"}
-                            if args.debug:
-                                log_message(api_url, "Processing saved search:", level="debug")
-                                log_message(api_url, f"API URL: {api_call}", level="debug")
-                                # Comment out header because of security reasons
-                                # log_message(api_url, f"Headers: {headers}", level="debug")
-                                log_message(api_url, f"Data: {data}", level="debug")
-                            make_api_call(api_call, app_name, encoded_stanza, headers, data)
+                        if inside_stanza:
+                            # Reached the end of the current stanza
+                            # Check if "disabled" parameter was not found, and if not, process the stanza
+                            if not has_disabled:
+                                # No "disabled" parameter found, make an API call to enable because in default
+                                enable_stanza(api_url, token, args, app_name, stanza)
+                            stanza = None
+                            has_disabled = False
                         
-                        elif disabled_present == False:
-                            api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
-                            headers = {"Authorization": f"Bearer {token}"}
-                            data = {"disabled": "0"}
-                            if args.debug:
-                                log_message(api_url, "Processing saved search:", level="debug")
-                                log_message(api_url, f"API URL: {api_call}", level="debug")
-                                # Comment out header because of security reasons
-                                # log_message(api_url, f"Headers: {headers}", level="debug")
-                                log_message(api_url, f"Data: {data}", level="debug")
-                            make_api_call(api_call, app_name, encoded_stanza, headers, data)
-
-
+                        stanza = line[1:-1]
+                        line = line.strip()
+                        inside_stanza = True
+                    elif inside_stanza:
+                        if line.startswith("disabled = 0") or line.startswith("disabled=0"):
+                            # "disabled = 0" is found, make an API call to enable the stanza
+                            enable_stanza(api_url, token, args, app_name, stanza)
+                            has_disabled = True
+                        elif line.startswith("disabled = 1") or line.startswith("disabled=1"):
+                            # "disabled = 1" is found, make an API call to disable the stanza
+                            disable_stanza(api_url, token, args, app_name, stanza)
+                            has_disabled = True
+    
+                # Check the last stanza in the file
+                if inside_stanza and not has_disabled:
+                    enable_stanza(api_url, token, args, app_name, stanza)
+    
     # Iterate over local directories of each app with savedsearches.conf
     for app_name in os.listdir(os.path.join(location)):
         savedsearches_path = os.path.join(location, app_name, "local", "savedsearches.conf")
         if os.path.exists(savedsearches_path):
             with open(savedsearches_path, "r") as f:
+                inside_stanza = False  # Flag to track if inside a stanza
+                stanza = None
+                has_disabled = False # Flag to track if stanza has a disabled parameter
+
                 for line in f:
+                    if args.debug:
+                        log_message(api_url, f"{app_name}/LOCAL: {line}", level="debug")
                     if line.startswith("[") and line.endswith("]\n"):
-                        stanza = line.strip()[1:-1]
-                        encoded_stanza = urllib.parse.quote(stanza)
+                        if inside_stanza:
+                            # Reached the end of the current stanza
+                            # Reset parameters when "disabled" is not found in /local
+                            stanza = None
+                            has_disabled = False
                         
-                        if "disabled" in line or "disabled = 0" in line or "disabled=false" in line or "disabled = false" in line:
-                            api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
-                            headers = {"Authorization": f"Bearer {token}"}
-                            data = {"disabled": "0"}
-                            if args.debug:
-                                log_message(api_url, "Processing saved search:", level="debug")
-                                log_message(api_url, f"API URL: {api_call}", level="debug")
-                                # Comment out header because of security reasons
-                                # log_message(api_url, f"Headers: {headers}", level="debug")
-                                log_message(api_url, f"Data: {data}", level="debug")
-                            make_api_call(api_call, app_name, encoded_stanza, headers, data)
-                        
-                        elif "disabled=1" in line or "disabled = 1" in line or "disabled=true" in line or "disabled = true" in line:
-                            api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
-                            headers = {"Authorization": f"Bearer {token}"}
-                            data = {"disabled": "1"}
-                            if args.debug:
-                                log_message(api_url, "Processing saved search:", level="debug")
-                                log_message(api_url, f"API URL: {api_call}", level="debug")
-                                # Comment out header because of security reasons
-                                # log_message(api_url, f"Headers: {headers}", level="debug")
-                                log_message(api_url, f"Data: {data}", level="debug")
-                            make_api_call(api_call, app_name, encoded_stanza, headers, data)
+                        stanza = line[1:-1]
+                        line = line.strip()
+                        inside_stanza = True
+                    elif inside_stanza:
+                        if line.startswith("disabled = 0") or line.startswith("disabled=0"):
+                            # "disabled = 0" is found, make an API call to enable the stanza
+                            enable_stanza(api_url, token, args, app_name, stanza)
+                            has_disabled = True
+                        elif line.startswith("disabled = 1") or line.startswith("disabled=1"):
+                            # "disabled = 1" is found, make an API call to disable the stanza
+                            disable_stanza(api_url, token, args, app_name, stanza)
+                            has_disabled = True
 
     # Calculate the runtime
     end_time = datetime.datetime.now()
