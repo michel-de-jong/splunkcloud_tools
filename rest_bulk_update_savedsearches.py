@@ -5,6 +5,8 @@
 # ALWAYS VERIFY RESULTS
 
 import os
+import re
+import getpass
 import urllib.parse
 import requests
 import datetime
@@ -36,7 +38,14 @@ def log_message(api_url, message, level):
         f.write(f"[{now}] [{level.upper()}] {message}\n")
 
 def create_log_directory(api_url):
-    stackname = urllib.parse.urlparse(api_url).hostname.split('.')[0]+"_"+urllib.parse.urlparse(api_url).hostname.split('.')[1]
+    if re.match(r'^https?\:\/\/shc?\d+?\.', api_url):
+        stackname = urllib.parse.urlparse(api_url).hostname.split('.')[0]+"_"+urllib.parse.urlparse(api_url).hostname.split('.')[1]
+    elif re.match(r'^https?\:\/\/[a-z-]+\.splunkcloud\.com\:\d+$', api_url):
+        s = re.search(r'^([^\.]+)\.splunkcloud\.com$', api_url)
+        stackname = s.group(1)
+    else:
+        s = re.search(r'^https?\:\/\/([^\:]+)\:\d+', api_url)
+        stackname = s.group(1)
     date = datetime.datetime.now().strftime("%Y%m%d")
     directory_name = f"run_{stackname}_{date}"
     
@@ -77,11 +86,11 @@ def enable_stanza(api_url, token, args, app_name, stanza_name):
 
 def main(args):
     # Get the location of the Splunk app location from user input
-    location = input("Enter the location of the Splunk apps: ")
+    location = input("Enter the location of the Splunk apps: \n")
 
     # Ask for API url and token from user input
-    api_url = input("Enter the API url (https://shc1.stackname.splunkcloud.com:8089): ")
-    token = input("Enter the authentication token: ")
+    api_url = input("Enter the API url (https://shc1.stackname.splunkcloud.com:8089, https://(es-)stackname.splunkcloud.com:8089, http(s)://anyhost:8089): \n")
+    token = getpass.getpass(prompt="Enter the authentication token: \n")
 
     # Record the start time
     start_time = datetime.datetime.now()
