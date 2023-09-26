@@ -40,8 +40,8 @@ def log_message(api_url, message, level):
 def create_log_directory(api_url):
     if re.match(r'^https?\:\/\/shc?\d+?\.', api_url):
         stackname = urllib.parse.urlparse(api_url).hostname.split('.')[0]+"_"+urllib.parse.urlparse(api_url).hostname.split('.')[1]
-    elif re.match(r'^https?\:\/\/[a-z-]+\.splunkcloud\.com\:\d+$', api_url):
-        s = re.search(r'^([^\.]+)\.splunkcloud\.com$', api_url)
+    elif re.match(r'^https?\:\/\/[a-z\-]+\.splunkcloud\.com', api_url):
+        s = re.search(r'^https?\:\/\/([^\.]+)\.splunkcloud\.com', api_url)
         stackname = s.group(1)
     else:
         s = re.search(r'^https?\:\/\/([^\:]+)\:\d+', api_url)
