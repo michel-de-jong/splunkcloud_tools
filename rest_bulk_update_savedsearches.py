@@ -29,6 +29,12 @@ def make_api_call(api_url, app_name, encoded_stanza, headers, data):
         log_message(api_url, f"API call failed for {encoded_stanza} in {app_name}. Status Code: {response.status_code}", level="error")
         log_message(api_url, f"Response Content: {response.text}", level="error")
 
+def dummy_api_call(api_url, app_name, encoded_stanza, headers, data):
+    global api_calls_count
+    api_calls_count += 1
+    print(f"#{api_calls_count} | Dummy API call successful")
+    log_message(api_url, f"Dummy API call successful for {encoded_stanza} in {app_name} with the following data: {data}", level="dummy")
+
 def log_message(api_url, message, level):
     log_directory = create_log_directory(api_url)
     log_file = os.path.join(log_directory, f"{level}.log")
@@ -67,7 +73,10 @@ def disable_stanza(api_url, token, args, app_name, stanza_name):
         # log_message(api_url, f"Headers: {headers}", level="debug")
         log_message(api_url, f"Data: {data}", level="debug")
         log_message(api_url, f"--------------------------------------", level="debug")
-    make_api_call(api_call, app_name, encoded_stanza, headers, data)
+    if args.dummy:
+        dummy_api_call(api_call, app_name, encoded_stanza, headers, data)
+    else:
+        make_api_call(api_call, app_name, encoded_stanza, headers, data)
 
 def enable_stanza(api_url, token, args, app_name, stanza_name):
     encoded_stanza = urllib.parse.quote(stanza_name)
@@ -82,7 +91,10 @@ def enable_stanza(api_url, token, args, app_name, stanza_name):
         # log_message(api_url, f"Headers: {headers}", level="debug")
         log_message(api_url, f"Data: {data}", level="debug")
         log_message(api_url, f"--------------------------------------", level="debug")
-    make_api_call(api_call, app_name, encoded_stanza, headers, data)
+    if args.dummy:
+        dummy_api_call(api_call, app_name, encoded_stanza, headers, data)
+    else:
+        make_api_call(api_call, app_name, encoded_stanza, headers, data)
 
 def main(args):
     # Get the location of the Splunk app location from user input
@@ -177,6 +189,7 @@ def main(args):
 if __name__ == "rest_bulk_update_savedsearches.py":
     parser = argparse.ArgumentParser(description="Script to update saved searches in Splunk apps")
     parser.add_argument("-debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("-dummy", action="store_true", help="Run in dummy mode")
     args = parser.parse_args()
 
     main(args)
