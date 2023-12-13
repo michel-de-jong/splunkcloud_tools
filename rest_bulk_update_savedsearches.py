@@ -168,8 +168,8 @@ def main(args):
 
 if __name__ == "rest_bulk_update_savedsearches.py":
     parser = argparse.ArgumentParser(description="Script to update saved searches in Splunk apps")
-    parser.add_argument("-debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("-dummy", action="store_true", help="Run in dummy mode")
+    parser.add_argument("-debug", action="store_true", help="Enable debug mode, create an extra logfile with all debug logs")
+    parser.add_argument("-dummy", action="store_true", help="Run in dummy mode, bypasses the actual API calls")
     args = parser.parse_args()
 
     main(args)
