@@ -5,5 +5,7 @@ The script will create a new directory with a copy of each app where the savedse
   
 - Use **rest_bulk_update_savedsearches.py** to enable the savedsearches per SearchHead(Cluster). Use the original app directory where not all savedsearches are disabled as input.
 
+>> Always verify the results <<
+
 **Sanitize App Package**
 - Use **sanitize_package.py** to clean up .tgz app packages before installation. This will clean up any unwanted hidden files, pax headers and set the correct permissions.
