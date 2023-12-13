@@ -8,7 +8,7 @@
 - Use **rest_bulk_update_savedsearches.py** to enable the savedsearches per SearchHead(Cluster). Use the original app directory where not all savedsearches are disabled as input.
 - Syntax: python3 rest_bulk_update_savedsearches.py
 - optional: -h (Help)
-- optional: -debug (Enable debug mode, created an extra logfile with all debug logs)
+- optional: -debug (Enable debug mode, create an extra logfile with all debug logs)
 - optional: -dummy (Run in dummy mode, bypasses the actual API calls)
 >> Verify the results
 
