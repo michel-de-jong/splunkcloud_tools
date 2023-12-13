@@ -1,7 +1,7 @@
 # splunkcloud tools
 **SavedSearches**
 - Use disabling_savedsearches.py to disable all savedsearches before ACS or SSAI install in SplunkCloud.
-- The script will create a new directory with a copy of each app where the savedsearches will be disabled. The app from this directory should be installed in SplunkCloud.
+The script will create a new directory with a copy of each app where the savedsearches will be disabled. The app from this directory should be installed in SplunkCloud.
   
 - Use rest_bulk_update_savedsearches.py to enable the savedsearches per SearchHead(Cluster). Use the original app directory where not all savedsearches are disabled as input.
 
