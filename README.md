@@ -7,6 +7,6 @@
 - Syntax: python3 splunkcloud_tools.py
 - Optional: -h (help)
 - Optional: -debug (Enable debug mode, create an extra log file with all debug logs)
-- Optional: -debug (Run in dummy mode, bypasses the actual API calls when running the enable scheduled searches script)
+- Optional: -dummy (Run in dummy mode, bypasses the actual API calls when running the enable scheduled searches script)
 <br/><br/>
 - Always verify the results
