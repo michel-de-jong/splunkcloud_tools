@@ -8,5 +8,5 @@
 - Optional: -h (help)
 - Optional: -debug (Enable debug mode, create an extra logfile with all debug logs)
 - Optional: -debug (Run in dummy mode, bypasses the actual API calls when running the enable scheduled searches script)
-
->> Verify the results
+<br/><br/>
+- Always verify the results
