@@ -17,24 +17,24 @@ __author__ = "Michel de Jong"
 def splunkcloud_tools(args):
     try:
         # Select which script
-        selection = input("Select which script you want to use: \n 1) Disable Savedsearches (pre-deployment) \n 2) Enable scheduled searches (post-deployment) \n")
+        selection = input("Select which script you want to use: \n 1) Disable Savedsearches (pre-deployment) \n 2) Enable scheduled searches (post-deployment) \n 3) Create all Savedsearches \n")
         if selection == "1":
             if args.debug is False:
                 debug = input("Enable debug logging? (create an extra logfile with debug logs) (y/n) \n")
                 if debug.lower() == "y":
                     args.debug = True
-            required_modules = ['os', 'shutil', 'datetime', 'datetime']
+            required_modules = ['shutil', 'datetime', 'datetime']
             check_modules(required_modules)
             from disabling_savedsearches import disabling_savedsearches
             disabling_savedsearches(args)
             print("Finished. Exiting the script")
             exit(0)
-        if selection == "2":
+        if selection == "2" or selection =="3":
             if args.debug is False:
                 debug = input("Enable debug logging? (create an extra logfile with debug logs) (y/n) \n")
                 if debug.lower() == "y":
                     args.debug = True
-                if debug.lower() == "n":
+                elif debug.lower() == "n":
                     args.debug = False
                 else:
                     print("Invalid input. Exiting the script.")
@@ -42,16 +42,25 @@ def splunkcloud_tools(args):
                 dummy = input("Enable dummy mode? (bypasses the actual API calls) (y/n) \n")
                 if dummy.lower() == "y":
                     args.dummy = True
-                if dummy.lower() == "n":
+                elif dummy.lower() == "n":
                     args.dummy = False
                 else:
                     print("Invalid input. Exiting the script.")
-            required_modules = ['os', 're', 'getpass', 'urllib.parse', 'requests', 'datetime']
+            
+            required_modules = ['re', 'getpass', 'urllib.parse', 'requests', 'datetime']
             check_modules(required_modules)
-            from rest_bulk_enable_savedsearches import rest_bulk_enable_savedsearches
-            rest_bulk_enable_savedsearches(args)
-            print("Finished. Exiting the script.")
-            exit(0)
+
+            from rest_update_savedsearches import rest_bulk_update_savedsearches
+            if selection == "2":
+                args.enable = True
+                rest_bulk_update_savedsearches(args)
+                print("Finished. Exiting the script.")
+                exit(0)
+            if selection == "3":
+                args.create = True
+                rest_bulk_update_savedsearches(args)
+                print("Finished. Exiting the script.")
+                exit(0)
         else:
             print("Exiting the script.")
             exit(0)
@@ -66,5 +75,7 @@ if __name__ == "splunkcloud_tools.py":
     parser.add_argument("-debug", action="store_true", help="Enable debug mode, create an extra logfile with all debug logs")
     parser.add_argument("-dummy", action="store_true", help="Run in dummy mode, bypasses the actual API calls when running the enable scheduled searches script")
     args = parser.parse_args()
+    args.create = False
+    args.enable = False
 
     splunkcloud_tools(args)

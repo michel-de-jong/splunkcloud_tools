@@ -14,6 +14,7 @@ from script_logger import log_message
 
 __name__ = "disabling_savedsearches.py"
 __author__ = "Michel de Jong"
+logfile = "disabling_savedsearches"
 
 # Function to process the savedsearches.conf file
 def process_file(file_path, args):
@@ -46,7 +47,7 @@ def process_file(file_path, args):
                             lines[j] = "disabled = 1\n"
                             modified = True
                             if args.debug:
-                                log_message(__name__, f"Disabled Stanza '{stanza_name}' in {file_path}", level="debug")
+                                log_message(logfile, f"Disabled Stanza '{stanza_name}' in {file_path}", level="debug")
                         break
                     if next_line.startswith("search") or next_line.startswith("|"):
                         continue
@@ -56,16 +57,16 @@ def process_file(file_path, args):
                     lines.insert(i+1, "disabled = 1\n")
                     modified = True
                     if args.debug:
-                        log_message(__name__, f"Inserted 'disabled = 1' for Stanza '{stanza_name}' in {file_path}", level="debug")
+                        log_message(logfile, f"Inserted 'disabled = 1' for Stanza '{stanza_name}' in {file_path}", level="debug")
 
         # If changes were made, write the modified savedsearches.conf file
         if modified:
             with open(file_path, "w") as f:
                 f.writelines(lines)
                 if args.debug:
-                    log_message(__name__, f"Modified {file_path}", level="debug")
+                    log_message(logfile, f"Modified {file_path}", level="debug")
                 else:
-                    log_message(__name__, f"Disabled saved searches in {file_path}", level="info")
+                    log_message(logfile, f"Disabled saved searches in {file_path}", level="info")
 
     except PermissionError:
         print(f"ERROR: Permission denied: {file_path}")
