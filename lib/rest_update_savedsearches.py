@@ -48,7 +48,8 @@ def rest_bulk_update_savedsearches(args):
         token = getpass.getpass(prompt="Enter the authentication token: \n")
         # Record the start time
         start_time = datetime.datetime.now()
-        syntax_check(api_url)
+        if args.dummy is False:
+            syntax_check(api_url)
         log_message(logfile, f"API url: {api_url}", level="info")
 
         # Iterate over default and local directories of each app with savedsearches.conf
