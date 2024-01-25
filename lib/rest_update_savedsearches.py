@@ -48,7 +48,6 @@ def rest_bulk_update_savedsearches(args):
         token = getpass.getpass(prompt="Enter the authentication token: \n")
         # Record the start time
         start_time = datetime.datetime.now()
-        print(f"RUN SYNTAX CHECKER \n")
         syntax_check(api_url)
         log_message(logfile, f"API url: {api_url}", level="info")
 
