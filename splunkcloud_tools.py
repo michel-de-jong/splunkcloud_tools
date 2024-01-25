@@ -18,17 +18,24 @@ def splunkcloud_tools(args):
     try:
         # Select which script
         selection = input("Select which script you want to use: \n 1) Disable Savedsearches (pre-deployment) \n 2) Enable scheduled searches (post-deployment) \n 3) Create all Savedsearches \n")
+        
         if selection == "1":
             if args.debug is False:
                 debug = input("Enable debug logging? (create an extra logfile with debug logs) (y/n) \n")
                 if debug.lower() == "y":
                     args.debug = True
+                elif debug.lower() == "n":
+                    args.debug = False
+                else:
+                    print("Invalid input. Exiting the script.")
+                    exit(0)
             required_modules = ['shutil', 'datetime', 'datetime']
             check_modules(required_modules)
             from disabling_savedsearches import disabling_savedsearches
             disabling_savedsearches(args)
             print("Finished. Exiting the script")
             exit(0)
+        
         if selection == "2" or selection =="3":
             if args.debug is False:
                 debug = input("Enable debug logging? (create an extra logfile with debug logs) (y/n) \n")
@@ -38,6 +45,7 @@ def splunkcloud_tools(args):
                     args.debug = False
                 else:
                     print("Invalid input. Exiting the script.")
+                    exit(0)
             if args.dummy is False:
                 dummy = input("Enable dummy mode? (bypasses the actual API calls) (y/n) \n")
                 if dummy.lower() == "y":
@@ -46,6 +54,7 @@ def splunkcloud_tools(args):
                     args.dummy = False
                 else:
                     print("Invalid input. Exiting the script.")
+                    exit(0)
             
             required_modules = ['re', 'getpass', 'urllib.parse', 'requests', 'datetime']
             check_modules(required_modules)
