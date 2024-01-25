@@ -71,7 +71,7 @@ def splunkcloud_tools(args):
         print(f"An error occurred: {e}")
 
 if __name__ == "splunkcloud_tools.py":
-    parser = argparse.ArgumentParser(description="Splunk Cloud tools to disable scheduled searches in a given directory with apps (pre-deployment) and enable scheduled searches on specific endpoints based on a given directory with apps (post-deployment). Please refer the README.md for more information.")
+    parser = argparse.ArgumentParser(description="Splunk Cloud tools to disable scheduled searches in a given directory with apps (pre-deployment), enable scheduled searches on specific endpoints based on a given directory with apps (post-search-deployment) and create savedsearches (post-app-deployment). Please refer the README.md for more information.")
     parser.add_argument("-debug", action="store_true", help="Enable debug mode, create an extra logfile with all debug logs")
     parser.add_argument("-dummy", action="store_true", help="Run in dummy mode, bypasses the actual API calls when running the enable scheduled searches script")
     args = parser.parse_args()
