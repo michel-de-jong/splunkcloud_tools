@@ -55,6 +55,7 @@ def build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_pa
     api_call = f"{api_url}/servicesNS/nobody/{app_name}/saved/searches/{encoded_stanza}"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     data = savedsearch_params  # Use all savedsearch_params dynamically
+    print(f"ARGS: {args}")
 
     if args.debug:
         log_message(logfile, f"--------------------------------------", level="debug")
