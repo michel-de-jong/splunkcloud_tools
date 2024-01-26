@@ -5,7 +5,7 @@
 import os
 import sys
 import datetime
-import getpass
+import getpass 
 
 # import custom lib
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
@@ -43,13 +43,17 @@ def rest_bulk_update_savedsearches(args):
     try:
         # Get the location of the Splunk app location from user input
         location = input("Enter the location of the Splunk apps: \n")
+        
         # Ask for API url and token from user input
         api_url = input("Enter the API url (https://shc1.stackname.splunkcloud.com:8089, https://(es-)stackname.splunkcloud.com:8089, http(s)://anyhost:8089): \n")
         token = getpass.getpass(prompt="Enter the authentication token: \n")
+        
         # Record the start time
         start_time = datetime.datetime.now()
+        
         if args.dummy is False:
             syntax_check(api_url)
+        
         log_message(logfile, f"API url: {api_url}", level="info")
 
         # Iterate over default and local directories of each app with savedsearches.conf
