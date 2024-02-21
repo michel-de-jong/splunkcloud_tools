@@ -11,6 +11,8 @@ import urllib.parse
 import requests
 import datetime
 import argparse
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 __name__ = "rest_bulk_update_savedsearches.py"
 __author__ = "Michel de Jong"
@@ -22,7 +24,7 @@ def make_api_call(api_url, app_name, encoded_stanza, headers, data):
     api_calls_count += 1
     
     try:
-        response = requests.post(api_url, headers=headers, data=data)
+        response = requests.post(api_url, headers=headers, data=data, verify=False)
         
         if response.status_code == 200:
             print(f"#{api_calls_count} | API call successful")
