@@ -7,6 +7,8 @@ import re
 import sys
 import urllib.parse
 import requests
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # import custom lib
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
@@ -24,7 +26,7 @@ def make_api_call(api_url, app_name, encoded_stanza, headers, data):
     api_calls_count += 1
     
     try:
-        response = requests.post(api_url, headers=headers, data=data)
+        response = requests.post(api_url, headers=headers, data=data, verify=False)
         
         if response.status_code == 200 or response.status_code == 201:
             print(f"#{api_calls_count} | API call successful")
