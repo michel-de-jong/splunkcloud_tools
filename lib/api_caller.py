@@ -30,34 +30,33 @@ def make_api_call(api_url, app_name, encoded_stanza, headers, data):
         
         if response.status_code == 200 or response.status_code == 201:
             print(f"#{api_calls_count} | API call successful")
-            log_message(logfile, f"API call successful for {encoded_stanza} in {app_name}", level="info")
+            log_message(logfile, f"API call successful for {api_url}, {encoded_stanza} in {app_name}", level="info")
         else:
             print(f"#{api_calls_count} | API call failed, see error.log for details")
-            log_message(logfile, f"API call failed for {encoded_stanza} in {app_name}. Status Code: {response.status_code}", level="error")
+            log_message(logfile, f"API call failed for {api_url}, {encoded_stanza} in {app_name}. Status Code: {response.status_code}", level="error")
             log_message(logfile, f"Response Content: {response.text}", level="error")
             
     except requests.exceptions.RequestException as e:
         print(f"#{api_calls_count} | API call failed due to a network error: {e}")
-        log_message(logfile, f"API call failed for {encoded_stanza} in {app_name}. Network error: {e}", level="error")
+        log_message(logfile, f"API call failed for {api_url}, {encoded_stanza} in {app_name}. Network error: {e}", level="error")
     except Exception as e:
         print(f"#{api_calls_count} | API call failed due to an unexpected error: {e}")
-        log_message(logfile, f"API call failed for {encoded_stanza} in {app_name}. Unexpected error: {e}", level="error")
+        log_message(logfile, f"API call failed for {api_url}, {encoded_stanza} in {app_name}. Unexpected error: {e}", level="error")
 
 def dummy_api_call(api_url, app_name, encoded_stanza, headers, data):
     global api_calls_count
     api_calls_count += 1
     print(f"#{api_calls_count} | Dummy API call successful")
-    log_message(logfile, f"Dummy run successful for {encoded_stanza} in {app_name}", level="info")
+    log_message(logfile, f"Dummy run successful for {encoded_stanza} in {app_name}", level="dummy")
 
 def build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_params):
-    if not savedsearch_params:
-        log_message(logfile, f"Skipping saved search '{stanza_name}' in app '{app_name}' as no parameters found.", level="info")
-        return
     encoded_stanza = urllib.parse.quote(stanza_name)
-    api_call = f"{api_url}/servicesNS/nobody/{app_name}/saved/searches/{encoded_stanza}"
+    # api_call = f"{api_url}/servicesNS/nobody/{app_name}/saved/searches/{encoded_stanza}"
+    api_call = f"{api_url}/servicesNS/nobody/{app_name}/saved/searches"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     data = savedsearch_params  # Use all savedsearch_params dynamically
-    print(f"ARGS: {args}")
+    api_call_acl = f"{api_url}/servicesNS/nobody/{app_name}/saved/searches/{encoded_stanza}/acl"
+    data_acl = {"owner": "Nobody", "sharing": "app"}
 
     if args.debug:
         log_message(logfile, f"--------------------------------------", level="debug")
@@ -70,6 +69,7 @@ def build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_pa
         dummy_api_call(api_call, app_name, encoded_stanza, headers, data)
     else:
         make_api_call(api_call, app_name, encoded_stanza, headers, data)
+        make_api_call(api_call_acl, app_name, encoded_stanza, headers, data_acl)
 
 def build_enable_url(api_url, token, args, app_name, stanza_name, enable=True):
     encoded_stanza = urllib.parse.quote(stanza_name)

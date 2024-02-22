@@ -33,10 +33,11 @@ def parse_searches(savedsearches_path):
                         if current_section:
                             key, value = map(str.strip, line.split('=', 1))
                             params_dict[current_section][key] = value
-                            params_dict[current_section]['sharing'] = 'app'
+                            # Change key name to match Splunk REST API required values
+                            if "enableSched" in params_dict[current_section]:
+                                params_dict[current_section]['is_scheduled'] = params_dict[current_section].pop('enableSched')
     except Exception as e:
         log_message(logfile, f"Error parsing {savedsearches_path}: {e}", level="error")
-
     return params_dict
 
 def rest_bulk_update_savedsearches(args):
@@ -62,10 +63,11 @@ def rest_bulk_update_savedsearches(args):
             savedsearches_data = parse_searches(savedsearches_default_path)
             for stanza_name, savedsearch_params in savedsearches_data.items():
                 if not savedsearch_params:
-                    log_message(logfile, f"Skipping saved search '{stanza_name}' in app '{app_name}' as no parameters found.", level="info")
-                    return
+                    log_message(logfile, f"Skipping default saved search '{stanza_name}' in app '{app_name}' as no parameters found.", level="info")
+                    continue
                 if args.create:
-                    build_create_url(api_url, token, args, app_name, stanza_name, savedsearches_data)
+
+                    build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_params)
                 if args.enable:
                     # Check if the "disabled" key exists in savedsearch_params
                     disabled_value = savedsearch_params.get("disabled", None)
@@ -78,10 +80,14 @@ def rest_bulk_update_savedsearches(args):
                         build_enable_url(api_url, token, args, app_name, stanza_name, enable=False)
 
             savedsearches_local_path = os.path.join(location, app_name, "local", "savedsearches.conf")
-            parse_searches(savedsearches_local_path)
+            savedsearches_data = parse_searches(savedsearches_local_path)
             for stanza_name, savedsearch_params in savedsearches_data.items():
+                if not savedsearch_params:
+                    log_message(logfile, f"Skipping local saved search '{stanza_name}' in app '{app_name}' as no parameters found.", level="info")
+                    continue
                 if args.create:
-                    build_create_url(api_url, token, args, app_name, stanza_name, savedsearches_data)
+                    savedsearch_params['name'] = stanza_name
+                    build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_params)
                 if args.enable:
                     # Check if the "disabled" key exists in savedsearch_params
                     disabled_value = savedsearch_params.get("disabled", None)

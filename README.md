@@ -5,6 +5,7 @@
         - Ensure that you have created a Splunk JWT Authentication Token and that the user account has sufficient permissions for the API calls.
      - "**Create scheduled searches (post-app-deployment)**" is to create the savedsearches per Search Head (Cluster) with all evailable parameters from the original savedsearches.conf. Be aware that everything will be created in app/local and has app-level sharing.
         - Ensure that you have created a Splunk JWT Authentication Token and that the user account has sufficient permissions for the API calls.
+        - The searches created are currently owned by the Nobody user. This might be enhanced in the future.
 <br/><br/>
 - Syntax: python3 splunkcloud_tools.py
 - Optional: -h (help)
