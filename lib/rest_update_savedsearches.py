@@ -3,6 +3,7 @@
 # ALWAYS VERIFY RESULTS
 
 import os
+import re
 import sys
 import datetime
 import getpass 
@@ -26,16 +27,21 @@ def parse_searches(savedsearches_path):
             with open(savedsearches_path, 'r', encoding='utf-8') as file:
                 for line in file:
                     line = line.strip()
-                    if line.startswith('[') and line.endswith(']'):
-                        current_section = line[1:-1]
+                    if line.startswith('#'): # Skip comment lines
+                        continue
+                    stanza_match = re.match(r'^\[(.*)\]$')
+                    if stanza_match:
+                        current_section = stanza_match.group(1)
                         params_dict[current_section] = {}
                     elif '=' in line:
                         if current_section:
-                            key, value = map(str.strip, line.split('=', 1))
-                            params_dict[current_section][key] = value
-                            # Change key name to match Splunk REST API required values
-                            if "enableSched" in params_dict[current_section]:
-                                params_dict[current_section]['is_scheduled'] = params_dict[current_section].pop('enableSched')
+                            kv_pair = line.split('=', 1)
+                            if len(kv_pair) == 2:
+                                key, value = map(str.strip, kv_pair)
+                                params_dict[current_section][key] = value
+                                # Change key name to match Splunk REST API required values
+                                if "enableSched" in params_dict[current_section]:
+                                    params_dict[current_section]['is_scheduled'] = params_dict[current_section].pop('enableSched')
     except Exception as e:
         log_message(logfile, f"Error parsing {savedsearches_path}: {e}", level="error")
     return params_dict

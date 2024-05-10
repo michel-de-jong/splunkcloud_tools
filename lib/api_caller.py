@@ -5,6 +5,7 @@
 import os
 import re
 import sys
+import time
 import urllib.parse
 import requests
 import urllib3
@@ -21,33 +22,36 @@ logfile = "rest_api_runner"
 
 api_calls_count = 0
 
-def make_api_call(api_url, app_name, encoded_stanza, headers, data):
+def make_api_call(api_url, app_name, stanza_name, headers, data):
     global api_calls_count
     api_calls_count += 1
     
     try:
+        st = time.time()
         response = requests.post(api_url, headers=headers, data=data, verify=False)
+        et = time.time()
+        timetaken = et - st
         
         if response.status_code == 200 or response.status_code == 201:
-            print(f"#{api_calls_count} | API call successful")
-            log_message(logfile, f"API call successful for {api_url}, {encoded_stanza} in {app_name}", level="info")
+            print(f"#{api_calls_count} | API call successful in {timetaken} seconds")
+            log_message(logfile, f"API call successful for {api_url}, '{stanza_name}' in {app_name}", level="info")
         else:
             print(f"#{api_calls_count} | API call failed, see error.log for details")
-            log_message(logfile, f"API call failed for {api_url}, {encoded_stanza} in {app_name}. Status Code: {response.status_code}", level="error")
+            log_message(logfile, f"API call failed for {api_url}, '{stanza_name}' in {app_name}. Status Code: {response.status_code}", level="error")
             log_message(logfile, f"Response Content: {response.text}", level="error")
             
     except requests.exceptions.RequestException as e:
         print(f"#{api_calls_count} | API call failed due to a network error: {e}")
-        log_message(logfile, f"API call failed for {api_url}, {encoded_stanza} in {app_name}. Network error: {e}", level="error")
+        log_message(logfile, f"API call failed for {api_url}, '{stanza_name}' in {app_name}. Network error: {e}", level="error")
     except Exception as e:
         print(f"#{api_calls_count} | API call failed due to an unexpected error: {e}")
-        log_message(logfile, f"API call failed for {api_url}, {encoded_stanza} in {app_name}. Unexpected error: {e}", level="error")
+        log_message(logfile, f"API call failed for {api_url}, '{stanza_name}' in {app_name}. Unexpected error: {e}", level="error")
 
-def dummy_api_call(api_url, app_name, encoded_stanza, headers, data):
+def dummy_api_call(api_url, app_name, stanza_name, headers, data):
     global api_calls_count
     api_calls_count += 1
     print(f"#{api_calls_count} | Dummy API call successful")
-    log_message(logfile, f"Dummy run successful for {encoded_stanza} in {app_name}", level="dummy")
+    log_message(logfile, f"Dummy run successful for {stanza_name} in {app_name}. API-url: {api_url}", level="dummy")
 
 def build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_params):
     encoded_stanza = urllib.parse.quote(stanza_name)
@@ -66,10 +70,10 @@ def build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_pa
         # log_message(logfile, f"Headers: {headers}", level="debug")
         log_message(logfile, f"Data: {data}", level="debug")
     if args.dummy:
-        dummy_api_call(api_call, app_name, encoded_stanza, headers, data)
+        dummy_api_call(api_call, app_name, stanza_name, headers, data)
     else:
-        make_api_call(api_call, app_name, encoded_stanza, headers, data)
-        make_api_call(api_call_acl, app_name, encoded_stanza, headers, data_acl)
+        make_api_call(api_call, app_name, stanza_name, headers, data)
+        make_api_call(api_call_acl, app_name, stanza_name, headers, data_acl)
 
 def build_enable_url(api_url, token, args, app_name, stanza_name, enable=True):
     encoded_stanza = urllib.parse.quote(stanza_name)
@@ -85,9 +89,9 @@ def build_enable_url(api_url, token, args, app_name, stanza_name, enable=True):
         # log_message(logfile, f"Headers: {headers}", level="debug")
         log_message(logfile, f"Data: {data}", level="debug")
     if args.dummy:
-        dummy_api_call(api_call, app_name, encoded_stanza, headers, data)
+        dummy_api_call(api_call, app_name, stanza_name, headers, data)
     else:
-        make_api_call(api_call, app_name, encoded_stanza, headers, data)
+        make_api_call(api_call, app_name, stanza_name, headers, data)
 
 def syntax_check(api_url):
     try:
