@@ -29,7 +29,7 @@ def parse_searches(savedsearches_path):
                     line = line.strip()
                     if line.startswith('#'): # Skip comment lines
                         continue
-                    stanza_match = re.match(r'^\[(.*)\]$')
+                    stanza_match = re.match(r'^\[(.*)\]$', line)
                     if stanza_match:
                         current_section = stanza_match.group(1)
                         params_dict[current_section] = {}

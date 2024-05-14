@@ -5,7 +5,7 @@
 import os
 import re
 import sys
-import time
+import datetime
 import urllib.parse
 import requests
 import urllib3
@@ -27,10 +27,10 @@ def make_api_call(api_url, app_name, stanza_name, headers, data):
     api_calls_count += 1
     
     try:
-        st = time.time()
+        st = datetime.datetime.now()
         response = requests.post(api_url, headers=headers, data=data, verify=False)
-        et = time.time()
-        timetaken = et - st
+        et = datetime.datetime.now()
+        timetaken = (et - st).seconds
         
         if response.status_code == 200 or response.status_code == 201:
             print(f"#{api_calls_count} | API call successful in {timetaken} seconds")
@@ -55,6 +55,8 @@ def dummy_api_call(api_url, app_name, stanza_name, headers, data):
 
 def build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_params):
     encoded_stanza = urllib.parse.quote(stanza_name)
+    # Replace "/" with "%252F" in the encoded string
+    encoded_stanza = encoded_stanza.replace("/", "%252F")
     # api_call = f"{api_url}/servicesNS/nobody/{app_name}/saved/searches/{encoded_stanza}"
     api_call = f"{api_url}/servicesNS/nobody/{app_name}/saved/searches"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
@@ -77,6 +79,8 @@ def build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_pa
 
 def build_enable_url(api_url, token, args, app_name, stanza_name, enable=True):
     encoded_stanza = urllib.parse.quote(stanza_name)
+    # Replace "/" with "%2F" in the encoded string
+    encoded_stanza = encoded_stanza.replace("/", "%252F")
     api_call = f"{api_url}/servicesNS/nobody/{app_name}/configs/conf-savedsearches/{encoded_stanza}"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     data = {"disabled": "0" if enable else "1"}
