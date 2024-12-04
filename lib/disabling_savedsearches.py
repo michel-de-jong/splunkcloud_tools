@@ -20,81 +20,89 @@ logfile = "disabling_savedsearches"
 def process_file(file_path, args):
     try:
         log_message(logfile, f"Processing file: {file_path}", level="info")
-        if args.debug:
-            log_message(logfile, f"Processing file: {file_path}", level="debug")
-        if os.path.exists(file_path):
-            with open(file_path, 'r', encoding='utf-8') as file:
-                lines = file.readlines()
-            if args.debug:
-                # Log all lines read from the file
-                log_message(logfile, f"Lines read from {file_path}:", level="debug")
-            for line in lines:
-                log_message(logfile, line.strip(), level="debug")
-
-            # Process each line
-            updated_lines = []
-            current_section = None
-            stanza_params = {}
-            for line in lines:
-                line = line.strip()
-                if args.debug:
-                    log_message(logfile, f"Processing line: {line}", level="debug")
-                if line.startswith('#'): # Skip comment lines
-                    if args.debug:
-                        log_message(logfile, "Skipping comment line", level="debug")
-                        continue
-                    updated_lines.append(line)
-                    continue
-                stanza_match = re.match(r'^\[(.*)\]$', line)
-                if stanza_match:
-                    if current_section:
-                        # Ensure 'disabled' parameter is present with value '1' for each stanza
-                        stanza_params['disabled'] = stanza_params.get('disabled', '1')
-                        # Write stanza with updated parameters to the list of lines
-                        updated_lines.append(f"[{current_section}]")
-                        for key, value in stanza_params.items():
-                            updated_lines.append(f"{key} = {value}")
-                        updated_lines.append("")  # Add an empty line after the stanza
-                        stanza_params.clear()  # Clear stanza parameters for the next stanza
-                    current_section = stanza_match.group(1)
-                    log_message(logfile, f"Found stanza: {current_section}", level="info")
-                    if args.debug:
-                        log_message(logfile, f"Found stanza: {current_section}", level="debug")
-                elif '=' in line:
-                    if current_section:
-                        key, value = map(str.strip, line.split('=', 1))
-                        if key == 'disabled':
-                            if value != '1':
-                                log_message(logfile, f"Changed 'disabled' value to '1' in stanza: {current_section}", level="info")
-                                if args.debug:
-                                    log_message(logfile, f"Changed 'disabled' value to '1' in stanza: {current_section}", level="debug")
-                            else:
-                                log_message(logfile, f"Added 'disabled = 1' to stanza: {current_section}", level="info")
-                                if args.debug:
-                                    log_message(logfile, f"Added 'disabled = 1' to stanza: {current_section}", level="debug")
-                            value = '1'  # Ensure 'disabled' parameter is always '1'
-                        stanza_params[key] = value
-
-            # Ensure 'disabled' parameter is present with value '1' for the last stanza
-            if current_section:
-                stanza_params['disabled'] = stanza_params.get('disabled', '1')
-                updated_lines.append(f"[{current_section}]")
-                for key, value in stanza_params.items():
-                    updated_lines.append(f"{key} = {value}")
-                if args.debug:
-                    log_message(logfile, f"Added 'disabled = 1' to stanza: {current_section}", level="debug")
-
-            # Write back to the file
-            with open(file_path, 'w', encoding='utf-8') as file:
-                file.write('\n'.join(updated_lines))
-            
-            log_message(logfile, f"Successfully processed and updated {file_path}", level="info")
-        else:
+        if not os.path.exists(file_path):
             log_message(logfile, f"File {file_path} does not exist.", level="error")
+            return
+
+        with open(file_path, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+
+        if args.debug:
+            log_message(logfile, f"Lines read from {file_path}: {lines}", level="debug")
+
+        updated_lines = []
+        current_stanza = None
+        stanza_lines = []
+        in_multiline_value = False
+
+        for line in lines:
+            stripped_line = line.rstrip()
+
+            # Check for comments or blank lines
+            if not stripped_line or stripped_line.startswith('#'):
+                if in_multiline_value:
+                    stanza_lines[-1] += f"\n{line.rstrip()}"  # Preserve within multiline values
+                else:
+                    updated_lines.append(line)
+                continue
+
+            # Detect if the line starts a new stanza (strict rule: no spaces inside brackets)
+            stanza_match = re.match(r'^\[([^\[\]\s]+)\]$', stripped_line)
+            if stanza_match and not in_multiline_value:
+                # Finalize the previous stanza, if any
+                if current_stanza:
+                    # Ensure 'disabled = 1' is the first parameter in the stanza
+                    updated_lines.append(f"[{current_stanza}]")
+                    if not any(l.strip().startswith('disabled =') for l in stanza_lines):
+                        updated_lines.append("disabled = 1")
+                    updated_lines.extend(stanza_lines)
+                    updated_lines.append("")  # Blank line between stanzas
+                    stanza_lines = []
+
+                # Start processing the new stanza
+                current_stanza = stanza_match.group(1)
+                log_message(logfile, f"Found stanza: {current_stanza}", level="info")
+                continue
+
+            # Handle multiline values (e.g., search = ...)
+            if in_multiline_value:
+                stanza_lines[-1] += f"\n{line.rstrip()}"  # Append to the previous parameter
+                if not stripped_line.endswith('\\'):  # Multiline ends without a backslash
+                    in_multiline_value = False
+                continue
+
+            # Detect a multiline value starting
+            if '=' in stripped_line and stripped_line.endswith('\\'):
+                stanza_lines.append(line.rstrip())  # Start of a multiline value
+                in_multiline_value = True
+                continue
+
+            # Regular key-value pair within a stanza
+            if '=' in stripped_line:
+                stanza_lines.append(line.rstrip())
+                continue
+
+        # Finalize the last stanza
+        if current_stanza:
+            updated_lines.append(f"[{current_stanza}]")
+            if not any(l.strip().startswith('disabled =') for l in stanza_lines):
+                updated_lines.append("disabled = 1")
+            updated_lines.extend(stanza_lines)
+
+        # Write back to the file
+        with open(file_path, 'w', encoding='utf-8') as file:
+            file.write('\n'.join(updated_lines).strip() + '\n')  # Ensure proper final newline
+
+        log_message(logfile, f"Successfully processed and updated {file_path}", level="info")
+
     except PermissionError:
-        print(f"ERROR: Permission denied: {file_path}")
+        log_message(logfile, f"Permission denied: {file_path}", level="error")
     except Exception as e:
         log_message(logfile, f"Error processing {file_path}: {e}", level="error")
+
+
+
+
 
 def disabling_savedsearches(args):
     try:
