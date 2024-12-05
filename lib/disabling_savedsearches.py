@@ -47,7 +47,7 @@ def process_file(file_path, args):
                 continue
 
             # Detect if the line starts a new stanza (strict rule: no spaces inside brackets)
-            stanza_match = re.match(r'^\[([^\[\]\s]+)\]$', stripped_line)
+            stanza_match = re.match(r'^(?<!\\\n)\[([^\[\]]+)\]$', stripped_line)
             if stanza_match and not in_multiline_value:
                 # Finalize the previous stanza, if any
                 if current_stanza:
