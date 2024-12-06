@@ -6,7 +6,7 @@ def log_message(name, message, level):
     log_file = os.path.join(log_directory, f"{level}.log")
 
     with open(log_file, "a") as f:
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         f.write(f"[{now}] [{level.upper()}] {message}\n")
 
 def create_log_directory(name):
