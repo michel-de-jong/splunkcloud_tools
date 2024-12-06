@@ -70,7 +70,7 @@ def read_config_params():
             if max_api_calls <= 0:
                 raise ValueError("max_api_calls_second must be a positive integer.")
             
-            return max_api_calls, api_url, location, token
+            return config_path, max_api_calls, api_url, location, token
     
     except FileNotFoundError as fnf_error:
         print(f"{fnf_error}. Using default values.")
@@ -98,7 +98,7 @@ def ask_for_input(value, prompt, value_name, is_password=False):
 def rest_bulk_update_savedsearches(args):
     try:
         # Read configuration values
-        max_api_calls, api_url, location, token = read_config_params()
+        config_path, max_api_calls, api_url, location, token = read_config_params()
         
         # Ask for user input only if not pre-configured
         print(f"\nAPI URL: {api_url if api_url else 'Not provided by configs.json'}")
@@ -120,6 +120,22 @@ def rest_bulk_update_savedsearches(args):
             api_url = ask_for_input(api_url, "Enter the API url (https://shc1.stackname.splunkcloud.com:8089, https://(es-)stackname.splunkcloud.com:8089, http(s)://anyhost:8089)", "API url")
             location = ask_for_input(location, "Enter the Splunk app location", "App location")
             token = ask_for_input(token, "Enter the authentication token", "Token", is_password=True)
+
+        # Update configs.json for api_url and location, if changed
+        try:
+            if config_path and (api_url or location):
+                with open(config_path, 'r') as file:
+                    config = json.load(file)
+                
+                if config.get("api_url") != api_url:
+                    config["api_url"] = api_url
+                if config.get("app_location") != location:
+                    config["app_location"] = location
+                
+                with open(config_path, 'w') as file:
+                    json.dump(config, file, indent=4)
+        except Exception as e:
+            log_message(logfile, f"Error updating configs.json: {e}", level="error")
 
         # Record the start time
         start_time = datetime.datetime.now()

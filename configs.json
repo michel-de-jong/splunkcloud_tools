@@ -1,7 +1,7 @@
 {
     "max_api_calls_second": 10,
-    "comment": "OPTIONAL parameters: api_url, app_location, token. Script will ask for the values during run if empty", 
+    "comment": "OPTIONAL parameters: api_url, app_location, token. Script will ask for the values during run if empty",
     "api_url": "",
     "app_location": "",
     "token": ""
-  }
+}
