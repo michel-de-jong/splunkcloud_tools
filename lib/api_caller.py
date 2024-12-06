@@ -16,23 +16,7 @@ from script_logger import log_message
 
 __name__ = "api_caller.py"
 __author__ = "Michel de Jong"
-logfile = "rest_api_runner2"
-
-import os, re, sys
-import datetime
-import urllib.parse, urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-import requests
-import threading
-
-# import custom lib
-sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
-
-from script_logger import log_message
-
-__name__ = "api_caller.py"
-__author__ = "Michel de Jong"
-logfile = "rest_api_runner2"
+logfile = "rest_api_runner"
 
 # Global counters
 success_counter = 0

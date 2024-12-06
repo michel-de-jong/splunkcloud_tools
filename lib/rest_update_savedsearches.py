@@ -7,17 +7,16 @@ import datetime, time
 import getpass
 import json
 from concurrent.futures import ThreadPoolExecutor
-import threading
 
 # import custom lib
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
 
 from script_logger import log_message
-from api_caller2 import build_create_url, build_enable_url, syntax_check
+from api_caller import build_create_url, build_enable_url, syntax_check
 
 __name__ = "rest_enable_savedsearches.py"
 __author__ = "Michel de Jong"
-logfile = "rest_api_runner2"
+logfile = "rest_api_runner"
 
 def parse_searches(savedsearches_path):
     params_dict = {}
@@ -91,9 +90,9 @@ def ask_for_input(value, prompt, value_name, is_password=False):
         return value
     else:
         if is_password:
-            value = getpass.getpass(prompt=f"Enter {value_name}: ")
+            value = getpass.getpass(prompt=f">Enter {value_name}: \n")
         else:
-            value = input(f"Enter {value_name}: ").strip()
+            value = input(f">Enter {value_name}: \n").strip()
     return value
 
 def rest_bulk_update_savedsearches(args):
@@ -103,25 +102,24 @@ def rest_bulk_update_savedsearches(args):
         
         # Ask for user input only if not pre-configured
         print(f"\nAPI URL: {api_url if api_url else 'Not provided by configs.json'}")
-        api_url = ask_for_input(api_url, "Enter the API url", "API url")
-
         print(f"App Location: {location if location else 'Not provided by configs.json'}")
-        location = ask_for_input(location, "Enter the Splunk app location", "App location")
-
         print(f"Token: {'******' if token else 'Not provided by configs.json'}")
-        token = ask_for_input(token, "Enter the authentication token", "Token", is_password=True)
 
         # Ask for confirmation after printing all values
-        correct = input(f"\nAre these values correct? (y/n): ").strip().lower()
-        
-        if correct != 'y':
-            # If the user says no, re-ask for the incorrect parameters only
-            if api_url == "":
-                api_url = ask_for_input("", "Enter the API url", "API url")
-            if location == "":
-                location = ask_for_input("", "Enter the Splunk app location", "App location")
-            if token == "":
-                token = ask_for_input("", "Enter the authentication token", "Token", is_password=True)
+        if api_url and location and token:
+            correct = input(f"\nAre these values correct? (y/n): ").strip().lower()
+            if correct != 'y':
+                # If the user says no, re-ask for the incorrect parameters only
+                if api_url == "":
+                    api_url = ask_for_input("", "Enter the API url (https://shc1.stackname.splunkcloud.com:8089, https://(es-)stackname.splunkcloud.com:8089, http(s)://anyhost:8089)", "API url")
+                if location == "":
+                    location = ask_for_input("", "Enter the Splunk app location", "App location")
+                if token == "":
+                    token = ask_for_input("", "Enter the authentication token", "Token", is_password=True)
+        else:
+            api_url = ask_for_input(api_url, "Enter the API url (https://shc1.stackname.splunkcloud.com:8089, https://(es-)stackname.splunkcloud.com:8089, http(s)://anyhost:8089)", "API url")
+            location = ask_for_input(location, "Enter the Splunk app location", "App location")
+            token = ask_for_input(token, "Enter the authentication token", "Token", is_password=True)
 
         # Record the start time
         start_time = datetime.datetime.now()

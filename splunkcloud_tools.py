@@ -59,7 +59,7 @@ def splunkcloud_tools(args):
             required_modules = ['re', 'getpass', 'urllib.parse', 'requests', 'datetime']
             check_modules(required_modules)
 
-            from rest_update_savedsearches_2 import rest_bulk_update_savedsearches
+            from rest_update_savedsearches import rest_bulk_update_savedsearches
             if selection == "2":
                 args.enable = True
                 rest_bulk_update_savedsearches(args)
