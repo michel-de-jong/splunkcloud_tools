@@ -153,23 +153,29 @@ def rest_bulk_update_savedsearches(args):
             for app_name in os.listdir(os.path.join(location)):
                 savedsearches_default_path = os.path.join(location, app_name, "default", "savedsearches.conf")
                 savedsearches_data = parse_searches(savedsearches_default_path)
+                # Dictionary to store 'disabled' values for each stanza from the default
+                default_disabled = {}
+
                 for stanza_name, savedsearch_params in savedsearches_data.items():
                     if not savedsearch_params:
                         log_message(logfile, f"Skipping default saved search '{stanza_name}' in app '{app_name}' as no parameters found.", level="info")
                         continue
+                    
                     if args.create:
                         futures.append(executor.submit(build_create_url, api_url, token, args, app_name, stanza_name, savedsearch_params))
+                    
+                    # Store the 'disabled' value from default configuration
+                    disabled_value = savedsearch_params.get("disabled", None)
+                    if disabled_value is not None:
+                        disabled_value = disabled_value.lower()
+                    default_disabled[stanza_name] = disabled_value
+
                     if args.enable:
-                        # Check if the "disabled" key exists in savedsearch_params
-                        disabled_value = savedsearch_params.get("disabled", None)
-                        if disabled_value is not None:
-                            disabled_value = disabled_value.lower()
                         if disabled_value == "0" or disabled_value == "false" or disabled_value is None:
-                            # Delay the API call by the specified amount of time between calls
-                            futures.append(executor.submit(time.sleep, delay_between_calls))  # Add delay
+                            futures.append(executor.submit(time.sleep, delay_between_calls))
                             futures.append(executor.submit(build_enable_url, api_url, token, args, app_name, stanza_name, True))
                         if disabled_value == "1" or disabled_value == "true":
-                            futures.append(executor.submit(time.sleep, delay_between_calls))  # Add delay
+                            futures.append(executor.submit(time.sleep, delay_between_calls))
                             futures.append(executor.submit(build_enable_url, api_url, token, args, app_name, stanza_name, False))
 
                 savedsearches_local_path = os.path.join(location, app_name, "local", "savedsearches.conf")
@@ -178,19 +184,22 @@ def rest_bulk_update_savedsearches(args):
                     if not savedsearch_params:
                         log_message(logfile, f"Skipping local saved search '{stanza_name}' in app '{app_name}' as no parameters found.", level="info")
                         continue
+                    
                     if args.create:
                         savedsearch_params['name'] = stanza_name
                         futures.append(executor.submit(build_create_url, api_url, token, args, app_name, stanza_name, savedsearch_params))
+                    
                     if args.enable:
-                        # Check if the "disabled" key exists in savedsearch_params
+                        # Check if the stanza exists in default configuration
                         disabled_value = savedsearch_params.get("disabled", None)
-                        if disabled_value is not None:
-                            disabled_value = disabled_value.lower()
-                        if disabled_value == "0" or disabled_value == "false":
-                            futures.append(executor.submit(time.sleep, delay_between_calls))  # Add delay
+                        if disabled_value is None and stanza_name in default_disabled:
+                            disabled_value = default_disabled[stanza_name].lower()
+                        
+                        if disabled_value == "0" or disabled_value == "false" or disabled_value is None:
+                            futures.append(executor.submit(time.sleep, delay_between_calls))
                             futures.append(executor.submit(build_enable_url, api_url, token, args, app_name, stanza_name, True))
                         if disabled_value == "1" or disabled_value == "true":
-                            futures.append(executor.submit(time.sleep, delay_between_calls))  # Add delay
+                            futures.append(executor.submit(time.sleep, delay_between_calls))
                             futures.append(executor.submit(build_enable_url, api_url, token, args, app_name, stanza_name, False))
 
             # Wait for all futures to complete
