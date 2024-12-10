@@ -75,9 +75,10 @@ def dummy_api_call(api_url, app_name, stanza_name, headers, data):
         log_message(logfile, f"Dummy run successful for {stanza_name} in {app_name}. API-url: {api_url}", level="dummy")
 
 def build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_params):
+   # Encode stanza name
     encoded_stanza = urllib.parse.quote(stanza_name)
-    # Replace "/" with "%252F" in the encoded string
     encoded_stanza = encoded_stanza.replace("/", "%252F")
+    
     api_call = f"{api_url}/servicesNS/nobody/{app_name}/saved/searches"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     data = savedsearch_params  # Use all savedsearch_params dynamically

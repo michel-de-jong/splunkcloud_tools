@@ -161,8 +161,8 @@ def rest_bulk_update_savedsearches(args):
                         log_message(logfile, f"Skipping default saved search '{stanza_name}' in app '{app_name}' as no parameters found.", level="info")
                         continue
                     
-                    if args.create:
-                        futures.append(executor.submit(build_create_url, api_url, token, args, app_name, stanza_name, savedsearch_params))
+                    #if args.create:
+                    #    futures.append(executor.submit(build_create_url, api_url, token, args, app_name, stanza_name, savedsearch_params))
                     
                     # Store the 'disabled' value from default configuration
                     disabled_value = savedsearch_params.get("disabled", None)
