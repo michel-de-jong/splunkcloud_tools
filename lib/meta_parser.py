@@ -1,32 +1,21 @@
-import os
+### DISCLAIMER
+# USE THE SCRIPT AT YOUR OWN RISK
+# ALWAYS VERIFY RESULTS
+
+import os, sys
 import configparser
 import urllib.parse
 from collections import defaultdict
-import json
 
 # import custom lib
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
 
 from script_logger import log_message
+from utils import endpoint_mapping
 
 __name__ = "meta_parser.py"
 __author__ = "Michel de Jong"
 logfile = "meta_parser"
-
-# # Mapping of .conf files and knowledge objects to their respective Splunk REST API endpoints
-# ENDPOINT_MAPPING = {
-#     "props": "configs/conf-props",
-#     "savedsearches": "configs/conf-savedsearches",
-#     "macros": "configs/conf-macros",
-#     "views": "data/ui/views",
-#     "field_extractions": "data/props/extractions",
-#     "field_transformations": "data/props/transforms",
-#     "eventtypes": "configs/conf-eventtypes",
-#     "tags": "configs/conf-tags",
-#     "workflow_actions": "data/ui/workflow-actions",
-#     "nav_menus": "data/ui/nav",
-#     "panels": "data/ui/panels",
-# }
 
 def determine_scope(raw_stanza):
     """
@@ -42,7 +31,7 @@ def determine_scope(raw_stanza):
         return "conf_file", parts[0], None
     return "object", parts[0], parts[1]
 
-def parse_meta_with_configparser(file_path):
+def parse_meta(file_path):
     """
     Parse metadata from a file and prepare it for API calls.
     """
@@ -55,7 +44,7 @@ def parse_meta_with_configparser(file_path):
         scope, conf_file, object_name = determine_scope(raw_stanza)
 
         # Determine the API endpoint
-        api_endpoint = ENDPOINT_MAPPING.get(conf_file, None)
+        api_endpoint = endpoint_mapping().get(conf_file, None)
         if not api_endpoint:
             continue  # Skip unknown object types
 
@@ -80,7 +69,7 @@ def parse_meta_with_configparser(file_path):
 
     return parsed_data
 
-def prepare_api_calls(parsed_data, api_url, token, app_name):
+def prepare_api_calls(parsed_data, api_url, app_name):
     """
     Prepare API calls for the `api_caller.py` script.
     """
@@ -124,39 +113,7 @@ def prepare_api_calls(parsed_data, api_url, token, app_name):
             "api_url": api_url_full,
             "app_name": app_name,
             "stanza_name": stanza_name,
-            "headers": {"Authorization": f"Bearer {token}"},
             "data": payload,
         })
 
     return api_calls
-
-def process_metadata(file_path, api_url, token, app_name, api_caller):
-    """
-    Main function to parse metadata and trigger API calls.
-    """
-    parsed_data = parse_meta_with_configparser(file_path)
-    api_calls = prepare_api_calls(parsed_data, api_url, token, app_name)
-
-    for call in api_calls:
-        api_caller(
-            call["api_url"],
-            call["app_name"],
-            call["stanza_name"],
-            call["headers"],
-            call["data"]
-        )
-
-# if __name__ == "__main__":
-#     import sys
-#     from api_caller import make_api_call  # Import your existing api_caller.py functions
-
-#     if len(sys.argv) < 5:
-#         print("Usage: python metadata_parser.py <meta_file_path> <api_url> <token> <app_name>")
-#         sys.exit(1)
-
-#     meta_file_path = sys.argv[1]
-#     api_url = sys.argv[2]
-#     token = sys.argv[3]
-#     app_name = sys.argv[4]
-
-#     process_metadata(meta_file_path, api_url, token, app_name, make_api_call)
