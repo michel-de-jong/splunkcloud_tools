@@ -10,6 +10,9 @@ import argparse
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
 
 from module_checker import check_modules
+from disabling_savedsearches import disabling_savedsearches
+from rest_update_savedsearches import rest_bulk_update_savedsearches
+from rest_bulk_create import rest_bulk_create
 
 __name__ = "splunkcloud_tools.py"
 __author__ = "Michel de Jong"
@@ -31,7 +34,6 @@ def splunkcloud_tools(args):
                     exit(0)
             required_modules = ['shutil', 'datetime', 'datetime']
             check_modules(required_modules)
-            from disabling_savedsearches import disabling_savedsearches
             disabling_savedsearches(args)
             print("Finished. Exiting the script")
             exit(0)
@@ -56,10 +58,9 @@ def splunkcloud_tools(args):
                     print("Invalid input. Exiting the script.")
                     exit(0)
             
-            required_modules = ['re', 'getpass', 'urllib.parse', 'requests', 'datetime']
+            required_modules = ['re', 'getpass', 'urllib.parse', 'requests', 'datetime', 'time', 'configparser', 'collections', 'concurrent.futures', 'threading']
             check_modules(required_modules)
 
-            from rest_update_savedsearches import rest_bulk_update_savedsearches
             if selection == "2":
                 args.enable = True
                 rest_bulk_update_savedsearches(args)
@@ -67,7 +68,7 @@ def splunkcloud_tools(args):
                 exit(0)
             if selection == "3":
                 args.create = True
-                rest_bulk_update_savedsearches(args)
+                rest_bulk_create(args)
                 print("Finished. Exiting the script.")
                 exit(0)
         else:

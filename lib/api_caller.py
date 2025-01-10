@@ -3,7 +3,7 @@
 # ALWAYS VERIFY RESULTS
 
 import os, re, sys
-import datetime
+import datetime, time
 import urllib.parse, urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import requests
@@ -13,6 +13,8 @@ import threading
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
 
 from script_logger import log_message
+from meta_parser import prepare_api_calls
+from utils import endpoint_mapping
 
 __name__ = "api_caller.py"
 __author__ = "Michel de Jong"
@@ -53,6 +55,7 @@ def make_api_call(api_url, app_name, stanza_name, headers, data):
             avg_time = total_time / api_calls_made if api_calls_made > 0 else 0
             # Print the current counters and average time on the same line
             print(f"\rAPI Calls - Success: {success_counter} | Failure: {failure_counter} (see error.log)| Avg Time: {avg_time:.4f}s", end="")
+            print("\n")
 
     except requests.exceptions.RequestException as e:
         with log_lock:
@@ -71,31 +74,38 @@ def dummy_api_call(api_url, app_name, stanza_name, headers, data):
     global success_counter, failure_counter, total_time, api_calls_made
     with log_lock:
         success_counter += 1
-        print(f"\rDUMMY API Calls - Success: {success_counter}")
+        print(f"\rDUMMY API Calls - Success: {success_counter} | Failure: {failure_counter} (see error.log)", end="")
+        print("\n")
         log_message(logfile, f"Dummy run successful for {stanza_name} in {app_name}. API-url: {api_url}", level="dummy")
 
-def build_create_url(api_url, token, args, app_name, stanza_name, savedsearch_params):
-    encoded_stanza = urllib.parse.quote(stanza_name)
-    # Replace "/" with "%252F" in the encoded string
+def build_create_url(api_url_base, token, args, object_name, stanza, params, app_name, tag):
+   # Encode stanza name
+    encoded_stanza = urllib.parse.quote(stanza)
     encoded_stanza = encoded_stanza.replace("/", "%252F")
-    api_call = f"{api_url}/servicesNS/nobody/{app_name}/saved/searches"
+    
+    # Determine the API endpoint
+    api_endpoint = endpoint_mapping().get(tag, None)
+
+    api_call = f"{api_url_base}/servicesNS/nobody/{app_name}/{api_endpoint}"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    data = savedsearch_params  # Use all savedsearch_params dynamically
-    api_call_acl = f"{api_url}/servicesNS/nobody/{app_name}/saved/searches/{encoded_stanza}/acl"
+    data = params  # Use all savedsearch dynamically
+    api_call_acl = f"{api_url_base}/servicesNS/nobody/{app_name}/{api_endpoint}/{encoded_stanza}/acl"
     data_acl = {"owner": "Nobody", "sharing": "app"}
 
     with log_lock:
         if args.debug:
             log_message(logfile, f"--------------------------------------", level="debug")
-            log_message(logfile, f"Processing saved search: {stanza_name}", level="debug")
+            log_message(logfile, f"Processing object: {object_name}", level="debug")
+            log_message(logfile, f"Processing stanza: {stanza}", level="debug")
             log_message(logfile, f"API URL: {api_call}", level="debug")
             log_message(logfile, f"Data: {data}", level="debug")
 
     if args.dummy:
-        dummy_api_call(api_call, app_name, stanza_name, headers, data)
+        dummy_api_call(api_call, app_name, object_name, headers, data)
     else:
-        make_api_call(api_call, app_name, stanza_name, headers, data)
-        make_api_call(api_call_acl, app_name, stanza_name, headers, data_acl)
+        make_api_call(api_call, app_name, object_name, headers, data)
+        time.sleep(2)
+        make_api_call(api_call_acl, app_name, object_name, headers, data_acl)
 
 def build_enable_url(api_url, token, args, app_name, stanza_name, enabled):
     encoded_stanza = urllib.parse.quote(stanza_name)
