@@ -1,3 +1,5 @@
+Visit https://deepwiki.com/michel-de-jong/splunkcloud_tools/1-overview for a detailed explanation.
+
 # Splunk Cloud Tools
 - Run splunkcloud_tools.py.
     - "**Disable Savedsearches (pre-deployment)**" is to disable all savedsearches before ACS or SSAI install in SplunkCloud. The script will create a new directory called apps_ss_disabled with a copy of each app where the savedsearches will be disabled. The original app will remain original. The apps from the apps_ss_disabled directory can be installed in SplunkCloud.
